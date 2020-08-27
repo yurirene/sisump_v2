@@ -1,0 +1,27 @@
+{
+    "name": "yurirene/umpnet",
+    "description": "Sistema Estatístico da União de Mocidade Presbiteriana",
+    "authors": [
+        {
+            "name": "Yuri Ferreira",
+            "email": "yurirene@gmail.com",
+            "homepage": "http://yurirene.com.br"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Source\\": "Source/"
+        },
+        "files":[
+            "Source/Config.php",
+            "Source/Helpers.php"
+        ]
+    },
+    "require": {
+        "coffeecode/datalayer": "1.1.*",
+        "coffeecode/router": "1.0.*",
+        "league/plates": "3.*",
+        "mpdf/mpdf": "7.1.7"
+        
+    }
+}
