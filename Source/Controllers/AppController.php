@@ -7,7 +7,9 @@ use Source\Models\Igreja;
 use Source\Models\Participacao;
 use Source\Models\Presbiterio;
 use Source\Models\Programacao;
+use Source\Models\Relatorio;
 use Source\Models\Secretario;
+use Source\Models\Sinodal;
 use Source\Models\Socio;
 use Source\Models\UMP;
 use Source\Models\Usuario;
@@ -92,7 +94,7 @@ class AppController extends Controller
     /**
      * ================== HELPERS ========================
      */
-    public function acesso($restricao = null, ?bool $maior =false, ?string $caminho = "app.index"): void
+    private function acesso($restricao = null, ?bool $maior =false, ?string $caminho = "app.index"): void
     {
         
         /**
@@ -139,7 +141,7 @@ class AppController extends Controller
      * @param type $restricao
      * @return string
      */
-    public function menu($restricao): string
+    private function menu($restricao): string
     {
         $this->acesso();
         $restricao= intval($restricao);
@@ -160,7 +162,7 @@ class AppController extends Controller
      * RETORNA O 'WHERE' DE UMA CONSULTA (EX: WHERE 'ID_UMP')
      * @return string
      */
-     public function paramBusca(): string
+     private function paramBusca(): string
     {
         $this->acesso();
          
@@ -181,7 +183,7 @@ class AppController extends Controller
      * @param string $tabela
      * @return string
      */
-    public function entity(string $tabela, int $restricao): string
+    private function entity(string $tabela, int $restricao): string
     {
         $this->acesso();
         switch($restricao){
@@ -1383,6 +1385,107 @@ class AppController extends Controller
         
     }
     
+    
+    public function relatorio($param):void
+    {
+        
+        
+       
+        
+        $retorno = $this->dadosRelatorios($_SESSION['usuario']['restricao']);
+        
+        echo $this->view->render("sisump/relatorio/".$this->paginaRelatorio($_SESSION['usuario']['restricao']), $retorno);
+        return;
+        
+    }
+    
+    private function paginaRelatorio($restricao): string
+    {
+        
+        $restricao= intval($restricao);
+        
+        switch($restricao){
+            case 1:
+                return "_local";
+                break;
+            case 2:
+                return "_federacao";
+                break;
+            case 3:
+                return "_sinodal";
+                break;
+                
+        }
+        
+    }
+    
+    private function dadosRelatorios($restricao): array
+    {
+        $this->acesso();
+        $restricao= intval($restricao);
+        
+        
+        $modelDiretoria = new Diretoria();
+        $modelDiretoria->changeEntity($this->entity("diretoria", $restricao));
+        $diretoria = $modelDiretoria->find($this->paramBusca())->fetch();
+        
+        $modelRelatorio = new Relatorio();
+        
+        
+        $perfil = $modelRelatorio->dadosPerfil($this->paramBusca())->fetch();
+        $participacao = $modelRelatorio->dadosParticipacao($this->paramBusca())->fetch();
+        $doacao = $modelRelatorio->dadosDoacao($this->paramBusca())->fetch();
+        $dadosIgrejas = $modelRelatorio->dadosIgrejas($this->paramBusca())->fetch(true);
+        
+        $totalSocios = $modelRelatorio->totalSocios($this->paramBusca())->fetch();
+        $dadosUmps = $modelRelatorio->dadosUmps($this->paramBusca())->fetch(true);
+        $dadosFederacoes = $modelRelatorio->dadosFederacoes($this->paramBusca())->fetch(true);
+        $dadosPresbiterios = $modelRelatorio->dadosPresbiterios($this->paramBusca())->fetch(true);
+        $cabecalhoFederacao = (new Presbiterio())->find($this->paramBusca(), null,"nome, sigla")->fetch();
+        $cabecalhoLocal= (new Igreja())->find($this->paramBusca(), null,"nome")->fetch();
+        $cabecalhoSinodal= (new Sinodal())->findById(intval($_SESSION['usuario']['id']), "nome, sigla");
+        
+         switch($restricao){
+            case 1:
+                $retorno =  [
+                    "diretoria"=>$diretoria,
+                    "perfil"=>$perfil, 
+                    "participacao"=>$participacao, 
+                    "doacao"=>$doacao,
+                    "cabecalhoLocal"=>$cabecalhoLocal
+                ];
+                return $retorno;
+                break;
+            case 2:
+                $retorno =  [
+                    "diretoria"=>$diretoria,
+                    "perfil"=>$perfil, 
+                    "participacao"=>$participacao, 
+                    "doacao"=>$doacao, 
+                    "dadosIgrejas"=>$dadosIgrejas, 
+                    "totalSocios"=>$totalSocios,
+                    "dadosUmps"=>$dadosUmps,
+                    "cabecalhoFederacao"=>$cabecalhoFederacao
+                ];
+                return $retorno;
+                break;
+            case 3:
+                $retorno =  [
+                    "diretoria"=>$diretoria,
+                    "perfil"=>$perfil, 
+                    "participacao"=>$participacao, 
+                    "doacao"=>$doacao,
+                    "totalSocios"=>$totalSocios,
+                    "cabecalhoSinodal"=>$cabecalhoSinodal,
+                    "dadosFederacoes"=>$dadosFederacoes,
+                    "dadosPresbiterios"=>$dadosPresbiterios
+                ];
+                return $retorno;
+                break;
+                
+        }
+        
+    }
     
     
 }
